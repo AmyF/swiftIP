@@ -83,6 +83,7 @@ public extension IP {
     }
     
     public func defaulMask() -> IPMask? {
+        // TODO: TODO
         if let ip = toIPv4() {
             return IPMask(ip: ip)
         }
@@ -90,7 +91,7 @@ public extension IP {
     }
     
     public func masking(by mask: IPMask) -> IP? {
-        // TODO:
+        // TODO: TODO
         return nil
     }
     
@@ -183,12 +184,12 @@ public struct IPv6: IP {
     public let bytes: [UInt8]
     
     init?(from: String) {
-        // TODO:
+        // TODO: TODO
         return nil
     }
     
     init?(from: [UInt8]) {
-        // TODO:
+        // TODO: TODO
         return nil
     }
     
@@ -201,7 +202,7 @@ public struct IPv6: IP {
     }
     
     public func toIPv4() -> IPv4? {
-        // TODO:
+        // TODO: TODO
         return nil
     }
     
@@ -217,7 +218,7 @@ public struct IPv6: IP {
 public extension IPv6 {
     public struct Formatter: IPFormatter, Equatable {
         public func string(from ip: IP) -> String {
-            // TODO:
+            // TODO: TODO
             return ""
         }
     }
