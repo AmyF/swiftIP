@@ -189,13 +189,55 @@ public struct IPv6: IP {
     public let bytes: [UInt8]
 
     init?(from: String) {
-        // TODO: TODO
-        return nil
+        if let ip = IPv6.build(normal: from) {
+            self = ip
+        } else if let ip = IPv6.build(doubleColon: from) {
+            self = ip
+        } else if let ip = IPv6.build(dot: from) {
+            self = ip
+        } else {
+            return nil
+        }
     }
 
     init?(from: [UInt8]) {
-        // TODO: TODO
-        return nil
+        if from.count != _v6BytesLength {
+            return nil
+        }
+        self.bytes = from
+    }
+    
+    private static func build(normal ip: String) -> IPv6? {
+        let cmpt = ip.components(separatedBy: ":")
+        guard cmpt.count == 8 else {
+            return nil
+        }
+        return IPv6(from: cmpt.compactMap{UInt16($0, radix: 16)}.flatMap{toUInt8(from: $0)})
+    }
+    
+    private static func build(doubleColon ip: String) -> IPv6? {
+        let cmpt = ip.components(separatedBy: "::")
+        guard cmpt.count == 2 else {
+            return nil
+        }
+        let pre = cmpt[0].components(separatedBy: ":")
+        let suf = cmpt[1].components(separatedBy: ":")
+        let prebytes = pre.compactMap{UInt16($0, radix: 16)}.flatMap{toUInt8(from: $0)}
+        let sufbytes = suf.compactMap{UInt16($0, radix: 16)}.flatMap{toUInt8(from: $0)}
+        let diff = (0..<(_v6BytesLength - prebytes.count - sufbytes.count)).map{_ in UInt8(0)}
+        return IPv6(from: prebytes + diff + sufbytes)
+    }
+    
+    private static func build(dot ip: String) -> IPv6? {
+        let cmpt = ip.components(separatedBy: ".")
+        guard cmpt.count == 32 else {
+            return nil
+        }
+        return IPv6(from: (0..<_v6BytesLength).compactMap{UInt8(cmpt[$0 * 2] + cmpt[$0 * 2 + 1], radix: 16)})
+    }
+    
+    private static func toUInt8(from uint16: UInt16) -> [UInt8] {
+        return [UInt8((uint16 & 0xFF00) >> 8),UInt8(uint16 & 0xFF)]
     }
 
     public var isIPv4: Bool {
@@ -207,8 +249,10 @@ public struct IPv6: IP {
     }
 
     public func toIPv4() -> IPv4? {
-        // TODO: TODO
-        return nil
+        guard [UInt8](bytes[..<12]) == _v4InV6Prefix else {
+            return nil
+        }
+        return IPv4(from: [UInt8](bytes[12...]))
     }
 
     public func toIPv6() -> IPv6? {
@@ -224,7 +268,7 @@ public extension IPv6 {
     public struct Formatter: IPFormatter, Equatable {
         public func string(from ip: IP) -> String {
             // TODO: TODO
-            return ""
+            return "\(ip)"
         }
     }
 }
