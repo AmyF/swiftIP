@@ -1,10 +1,12 @@
-# swiftIP
+# unkoip
 
 IP object for swift version
 
 # usage
 
 ```swift
+import unkoip
+
 let ipv4: IPv4 = IPv4(from: "192.0.2.235")! // IPv4(from: [192,0,2,235])!
 let ipv6: IPv6 = ipv4.toIPv6()!
 
