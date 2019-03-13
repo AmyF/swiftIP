@@ -30,7 +30,7 @@ public protocol IP: IPFormattable {
     var isLinkLocalMulticast: Bool { get }
     var isLinkLocalUnicast: Bool { get }
     
-    func defaulMask() -> IPMask?
+    func defaultMask() -> IPMask?
     func masking(with mask: IPMask) -> IPv4?
 }
 
@@ -87,7 +87,7 @@ public extension IP {
             (isIPv6 && bytes[0] == 0xFE && bytes[1] & 0xC0 == 0x80)
     }
     
-    public func defaulMask() -> IPMask? {
+    public func defaultMask() -> IPMask? {
         if let ip = toIPv4() {
             return IPMask(from: ip)
         }
