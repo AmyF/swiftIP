@@ -1,7 +1,7 @@
 import XCTest
 
-import swiftIPTests
+import unkoipTests
 
 var tests = [XCTestCaseEntry]()
-tests += swiftIPTests.allTests()
+tests += unkoipTests.allTests()
 XCTMain(tests)

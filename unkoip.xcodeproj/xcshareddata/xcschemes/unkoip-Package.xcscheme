@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "swiftIP::swiftIP"
-               BuildableName = "swiftIP.framework"
-               BlueprintName = "swiftIP"
-               ReferencedContainer = "container:swiftIP.xcodeproj">
+               BlueprintIdentifier = "unkoip::unkoip"
+               BuildableName = "unkoip.framework"
+               BlueprintName = "unkoip"
+               ReferencedContainer = "container:unkoip.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "swiftIP::swiftIPTests"
-               BuildableName = "swiftIPTests.xctest"
-               BlueprintName = "swiftIPTests"
-               ReferencedContainer = "container:swiftIP.xcodeproj">
+               BlueprintIdentifier = "unkoip::unkoipTests"
+               BuildableName = "unkoipTests.xctest"
+               BlueprintName = "unkoipTests"
+               ReferencedContainer = "container:unkoip.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,10 +55,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "swiftIP::swiftIP"
-            BuildableName = "swiftIP.framework"
-            BlueprintName = "swiftIP"
-            ReferencedContainer = "container:swiftIP.xcodeproj">
+            BlueprintIdentifier = "unkoip::unkoip"
+            BuildableName = "unkoip.framework"
+            BlueprintName = "unkoip"
+            ReferencedContainer = "container:unkoip.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
