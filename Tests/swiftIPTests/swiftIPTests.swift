@@ -3,7 +3,10 @@ import XCTest
 
 final class swiftIPTests: XCTestCase {
     func testExample() {
-        
+        let ip = IPv4(from: "202.112.14.137")!
+        let mask = IPMask(from: [255,255,255,224])!
+        let resutl = ip.masking(with: mask)
+        print("")
     }
     
     func testCreate() {

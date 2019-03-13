@@ -87,7 +87,7 @@ public extension IP {
     public func defaulMask() -> IPMask? {
         // TODO: TODO
         if let ip = toIPv4() {
-            return IPMask(ip: ip)
+            return IPMask(from: ip)
         }
         return nil
     }
@@ -229,17 +229,20 @@ public extension IPv6 {
 }
 
 public struct IPMask {
-    public static let aMask = IPMask(bytes: [0xFF, 0, 0, 0])
-    public static let bMask = IPMask(bytes: [0xFF, 0xFF, 0, 0])
-    public static let cMask = IPMask(bytes: [0xFF, 0xFF, 0xFF, 0])
+    public static let aMask = IPMask(from: [0xFF, 0, 0, 0])!
+    public static let bMask = IPMask(from: [0xFF, 0xFF, 0, 0])!
+    public static let cMask = IPMask(from: [0xFF, 0xFF, 0xFF, 0])!
 
     public let bytes: [UInt8]
 
-    private init(bytes: [UInt8]) {
-        self.bytes = bytes
+    init?(from: [UInt8]) {
+        if from.count != _v4BytesLength {
+            return nil
+        }
+        self.bytes = from
     }
 
-    init(ip: IPv4) {
+    init(from ip: IPv4) {
         switch ip.bytes[0] {
         case ...0x80:
             self = .aMask
