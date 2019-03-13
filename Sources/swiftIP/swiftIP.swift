@@ -8,7 +8,11 @@ public protocol IPFormatter {
     func string(from ip: IP) -> String
 }
 
-public protocol IP {
+public protocol IPFormattable {
+    func string(formatter: IPFormatter) -> String
+}
+
+public protocol IP: IPFormattable {
     var bytes: [UInt8] { get }
 
     var isIPv4: Bool { get }
@@ -16,7 +20,6 @@ public protocol IP {
 
     func toIPv4() -> IPv4?
     func toIPv6() -> IPv6?
-    func string(formatter: IPFormatter) -> String
 
     var isGlobalUnicast: Bool { get }
     var isZero: Bool { get }
@@ -85,7 +88,6 @@ public extension IP {
     }
 
     public func defaulMask() -> IPMask? {
-        // TODO: TODO
         if let ip = toIPv4() {
             return IPMask(from: ip)
         }
@@ -93,7 +95,6 @@ public extension IP {
     }
 
     public func masking(with mask: IPMask) -> IPv4? {
-        // TODO: TODO
         guard let ip = toIPv4() else {
             return nil
         }
@@ -228,28 +229,72 @@ public extension IPv6 {
     }
 }
 
-public struct IPMask {
-    public static let aMask = IPMask(from: [0xFF, 0, 0, 0])!
-    public static let bMask = IPMask(from: [0xFF, 0xFF, 0, 0])!
-    public static let cMask = IPMask(from: [0xFF, 0xFF, 0xFF, 0])!
+public struct IPMask: IPFormattable {
+    public static let classAMask = IPMask(from: [0xFF, 0, 0, 0])!
+    public static let classBMask = IPMask(from: [0xFF, 0xFF, 0, 0])!
+    public static let classCMask = IPMask(from: [0xFF, 0xFF, 0xFF, 0])!
 
     public let bytes: [UInt8]
+    public let number: Number
 
     init?(from: [UInt8]) {
-        if from.count != _v4BytesLength {
+        guard from.count == _v4BytesLength else {
             return nil
         }
+        guard let number = Number(bytes: from) else {
+            return nil
+        }
+        
         self.bytes = from
+        self.number = number
     }
 
     init(from ip: IPv4) {
         switch ip.bytes[0] {
         case ...0x80:
-            self = .aMask
+            self = .classAMask
         case ...0xC0:
-            self = .bMask
+            self = .classBMask
         default:
-            self = .cMask
+            self = .classCMask
+        }
+    }
+    
+    public func string(formatter: IPFormatter) -> String {
+        return formatter.string(from: IPv4(from: bytes)!)
+    }
+    
+    public func string(formatter: IPv4.Formatter = .dotDecimal) -> String {
+        return formatter.string(from: IPv4(from: bytes)!)
+    }
+    
+    public struct Number {
+        let network: Int
+        let host: Int
+        
+        init?(bytes: [UInt8]) {
+            var network = 0
+            for (index, value) in bytes.enumerated() {
+                if value == 0xFF {
+                    network += 8
+                    continue
+                }
+                var check = value
+                while check & 0x80 != 0 {
+                    network += 1
+                    check <<= 1
+                }
+                if check != 0 {
+                    return nil
+                }
+                for byte in bytes[(index+1)...] {
+                    if byte != 0 {
+                        return nil
+                    }
+                }
+            }
+            self.network = network
+            self.host = 32 - network
         }
     }
 }
