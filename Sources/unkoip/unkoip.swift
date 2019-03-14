@@ -12,6 +12,22 @@ public protocol IPFormattable {
     func string(formatter: IPFormatter) -> String
 }
 
+public struct IPNet {
+    let ip: IP
+    let mask: IPMask
+    
+    init(ip: IP, mask: IPMask) {
+        assert(ip.bytes.count == mask.bytes.count)
+        
+        self.ip = ip
+        self.mask = mask
+    }
+    
+    init?(CIDR string: String) {
+        return nil
+    }
+}
+
 public protocol IP: IPFormattable {
     var bytes: [UInt8] { get }
     
@@ -31,7 +47,7 @@ public protocol IP: IPFormattable {
     var isLinkLocalUnicast: Bool { get }
     
     func defaultMask() -> IPMask?
-    func masking(with mask: IPMask) -> IPv4?
+    func masking(with mask: IPMask) -> IP?
 }
 
 public extension IP {
@@ -94,29 +110,36 @@ public extension IP {
         return nil
     }
     
-    public func masking(with mask: IPMask) -> IPv4? {
-        guard let ip = toIPv4() else {
-            return nil
+    public func masking(with mask: IPMask) -> IP? {
+        if isIPv4 && mask.bytes.count == _v4BytesLength {
+            return IPv4(bytes: zip(bytes, mask.bytes).map { $0 & $1 })
+        } else if isIPv6 && mask.bytes.count == _v6BytesLength {
+            return IPv6(bytes: zip(bytes, mask.bytes).map { $0 & $1 })
         }
-        let bytes = zip(ip.bytes, mask.bytes).map { $0 & $1 }
-        return IPv4(from: bytes)
+        return nil
     }
 }
 
 public struct IPv4: IP {
-    public static let zero = IPv4(from: [0, 0, 0, 0])!
-    public static let boardcast = IPv4(from: [255, 255, 255, 255])!
-    public static let allsys = IPv4(from: [224, 0, 0, 1])
-    public static let allrouter = IPv4(from: [224, 0, 0, 2])
+    public static let zero = IPv4(bytes: [0, 0, 0, 0])
+    public static let boardcast = IPv4(bytes: [255, 255, 255, 255])
+    public static let allsys = IPv4(bytes: [224, 0, 0, 1])
+    public static let allrouter = IPv4(bytes: [224, 0, 0, 2])
     
     public let bytes: [UInt8]
     
-    init?(from string: String) {
+    public init(bytes: [UInt8]) {
+        assert(bytes.count == _v4BytesLength)
+        
+        self.bytes = bytes
+    }
+    
+    public init?(string: String) {
         self.init(from: string.components(separatedBy: ".").compactMap { UInt8($0) })
     }
     
-    init?(from bytes: [UInt8]) {
-        if bytes.count != _v4BytesLength {
+    private init?(from bytes: [UInt8]) {
+        guard bytes.count == _v4BytesLength else {
             return nil
         }
         self.bytes = bytes
@@ -135,7 +158,7 @@ public struct IPv4: IP {
     }
     
     public func toIPv6() -> IPv6? {
-        return IPv6(from: _v4InV6Prefix + bytes)
+        return IPv6(bytes: _v4InV6Prefix + bytes)
     }
     
     public func string(formatter: IPFormatter = Formatter.dotDecimal) -> String {
@@ -190,7 +213,13 @@ public struct IPv6: IP {
     
     public let bytes: [UInt8]
     
-    init?(from string: String) {
+    public init(bytes: [UInt8]) {
+        assert(bytes.count == _v6BytesLength)
+        
+        self.bytes = bytes
+    }
+    
+    public init?(string: String) {
         if let ip = IPv6.build(normal: string) {
             self = ip
         } else if let ip = IPv6.build(doubleColon: string) {
@@ -202,8 +231,8 @@ public struct IPv6: IP {
         }
     }
     
-    init?(from bytes: [UInt8]) {
-        if bytes.count != _v6BytesLength {
+    private init?(from bytes: [UInt8]) {
+        guard bytes.count == _v6BytesLength else {
             return nil
         }
         self.bytes = bytes
@@ -254,7 +283,7 @@ public struct IPv6: IP {
         guard [UInt8](bytes[..<12]) == _v4InV6Prefix else {
             return nil
         }
-        return IPv4(from: [UInt8](bytes[12...]))
+        return IPv4(bytes: [UInt8](bytes[12...]))
     }
     
     public func toIPv6() -> IPv6? {
