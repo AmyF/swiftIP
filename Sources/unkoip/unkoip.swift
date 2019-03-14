@@ -106,18 +106,20 @@ public extension IP {
 public struct IPv4: IP {
     public static let zero = IPv4(from: [0, 0, 0, 0])!
     public static let boardcast = IPv4(from: [255, 255, 255, 255])!
+    public static let allsys = IPv4(from: [224, 0, 0, 1])
+    public static let allrouter = IPv4(from: [224, 0, 0, 2])
     
     public let bytes: [UInt8]
     
-    init?(from: String) {
-        self.init(from: from.components(separatedBy: ".").compactMap { UInt8($0) })
+    init?(from string: String) {
+        self.init(from: string.components(separatedBy: ".").compactMap { UInt8($0) })
     }
     
-    init?(from: [UInt8]) {
-        if from.count != _v4BytesLength {
+    init?(from bytes: [UInt8]) {
+        if bytes.count != _v4BytesLength {
             return nil
         }
-        bytes = from
+        self.bytes = bytes
     }
     
     public var isIPv4: Bool {
@@ -188,23 +190,23 @@ public struct IPv6: IP {
     
     public let bytes: [UInt8]
     
-    init?(from: String) {
-        if let ip = IPv6.build(normal: from) {
+    init?(from string: String) {
+        if let ip = IPv6.build(normal: string) {
             self = ip
-        } else if let ip = IPv6.build(doubleColon: from) {
+        } else if let ip = IPv6.build(doubleColon: string) {
             self = ip
-        } else if let ip = IPv6.build(dot: from) {
+        } else if let ip = IPv6.build(dot: string) {
             self = ip
         } else {
             return nil
         }
     }
     
-    init?(from: [UInt8]) {
-        if from.count != _v6BytesLength {
+    init?(from bytes: [UInt8]) {
+        if bytes.count != _v6BytesLength {
             return nil
         }
-        self.bytes = from
+        self.bytes = bytes
     }
     
     private static func build(normal ip: String) -> IPv6? {
@@ -273,27 +275,18 @@ public extension IPv6 {
     }
 }
 
-public struct IPMask: IPFormattable {
+public struct IPMask {
     public static let classAMask = IPMask(from: [0xFF, 0, 0, 0])!
-    public static let classBMask = IPMask(from: [0xFF, 0xFF, 0, 0])!
-    public static let classCMask = IPMask(from: [0xFF, 0xFF, 0xFF, 0])!
+    public static let classBMask = IPMask(from: [0xFF, 0, 0, 0])!
+    public static let classCMask = IPMask(from: [0xFF, 0, 0, 0])!
     
     public let bytes: [UInt8]
-    public let number: Number
     
-    init?(from: [UInt8]) {
-        guard from.count == _v4BytesLength else {
-            return nil
-        }
-        guard let number = Number(bytes: from) else {
-            return nil
-        }
-        
-        self.bytes = from
-        self.number = number
-    }
+    public let numberOfNetwork: Int
     
-    init(from ip: IPv4) {
+    public let numberOfHost: Int
+    
+    public init(from ip: IPv4) {
         switch ip.bytes[0] {
         case ...0x80:
             self = .classAMask
@@ -304,41 +297,81 @@ public struct IPMask: IPFormattable {
         }
     }
     
-    public func string(formatter: IPFormatter) -> String {
-        return formatter.string(from: IPv4(from: bytes)!)
+    public init?(from string: String) {
+        self.init(from: string.components(separatedBy: ".").compactMap { UInt8($0) })
     }
     
-    public func string(formatter: IPv4.Formatter = .dotDecimal) -> String {
-        return formatter.string(from: IPv4(from: bytes)!)
-    }
-    
-    public struct Number {
-        let network: Int
-        let host: Int
-        
-        init?(bytes: [UInt8]) {
-            var network = 0
-            for (index, value) in bytes.enumerated() {
-                if value == 0xFF {
-                    network += 8
-                    continue
-                }
-                var check = value
-                while check & 0x80 != 0 {
-                    network += 1
-                    check <<= 1
-                }
-                if check != 0 {
-                    return nil
-                }
-                for byte in bytes[(index+1)...] {
-                    if byte != 0 {
-                        return nil
-                    }
-                }
-            }
-            self.network = network
-            self.host = 32 - network
+    public init?(ipv4 number: Int) {
+        guard number > 0 && number <= _v4BytesLength else {
+            return nil
         }
+        self.init(number: number, length: _v4BytesLength)
+    }
+    
+    public init?(ipv6 number: Int) {
+        guard number > 0 && number <= _v6BytesLength else {
+            return nil
+        }
+        self.init(number: number, length: _v6BytesLength)
+    }
+    
+    private init(number: Int, length: Int) {
+        self.bytes = _calculate(number: number, bitsLenght: length)
+        self.numberOfNetwork = number
+        self.numberOfHost = length - number
+    }
+    
+    public init?(from bytes: [UInt8]) {
+        let length = bytes.count
+        guard length == _v4BytesLength || length == _v6BytesLength else {
+            return nil
+        }
+        guard let (network, host) = _calculate(mask: bytes, length: length) else {
+            return nil
+        }
+        self.bytes = bytes
+        self.numberOfNetwork = network
+        self.numberOfHost = host
+    }
+}
+
+private func _calculate(mask bytes: [UInt8], length: Int) -> (Int, Int)? {
+    var network = 0
+    for (index, byte) in bytes.enumerated() {
+        if byte == 0xFF {
+            network += 8
+            continue
+        }
+        
+        var check = byte
+        while check & 0x80 != 0 {
+            network += 1
+            check <<= 1
+        }
+        if check != 0 {
+            return nil
+        }
+        for byte in bytes[(index+1)...] {
+            if byte != 0 {
+                return nil
+            }
+        }
+        break
+    }
+    return (network, length - network)
+}
+
+private func _calculate(number: Int, bitsLenght length: Int) -> [UInt8] {
+    var count = number
+    return (0..<(length / 8)).map { _ in
+        let result: UInt8
+        if count >= 8 {
+            result = 0xFF
+            count -= 8
+        } else {
+            result = 0xFF ^ (0xFF >> count)
+            count = 0
+        }
+        return result
     }
 }

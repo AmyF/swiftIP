@@ -22,6 +22,7 @@
 
 /* Begin PBXBuildFile section */
 		9ACB15192239611E00902CCE /* IPv6Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB15182239611E00902CCE /* IPv6Tests.swift */; };
+		9ACB151D223AB11800902CCE /* IPMaskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACB151C223AB11800902CCE /* IPMaskTests.swift */; };
 		OBJ_23 /* unkoip.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_9 /* unkoip.swift */; };
 		OBJ_30 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
 		OBJ_41 /* IPv4Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_12 /* IPv4Tests.swift */; };
@@ -48,6 +49,7 @@
 
 /* Begin PBXFileReference section */
 		9ACB15182239611E00902CCE /* IPv6Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPv6Tests.swift; sourceTree = "<group>"; };
+		9ACB151C223AB11800902CCE /* IPMaskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPMaskTests.swift; sourceTree = "<group>"; };
 		OBJ_12 /* IPv4Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPv4Tests.swift; sourceTree = "<group>"; };
 		OBJ_13 /* XCTestManifests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XCTestManifests.swift; sourceTree = "<group>"; };
 		OBJ_6 /* Package.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -88,6 +90,7 @@
 			children = (
 				OBJ_12 /* IPv4Tests.swift */,
 				9ACB15182239611E00902CCE /* IPv6Tests.swift */,
+				9ACB151C223AB11800902CCE /* IPMaskTests.swift */,
 				OBJ_13 /* XCTestManifests.swift */,
 			);
 			name = unkoipTests;
@@ -230,6 +233,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 0;
 			files = (
+				9ACB151D223AB11800902CCE /* IPMaskTests.swift in Sources */,
 				OBJ_41 /* IPv4Tests.swift in Sources */,
 				OBJ_42 /* XCTestManifests.swift in Sources */,
 				9ACB15192239611E00902CCE /* IPv6Tests.swift in Sources */,
