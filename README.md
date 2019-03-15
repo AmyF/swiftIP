@@ -2,6 +2,22 @@
 
 IP address for swift version
 
+# installation
+
+## Swift Package Manger
+
+```swift
+dependencies: [
+	.package(url: "https://github.com/AmyF/swiftIP", from: "0.0.1"),
+]
+
+targets: [
+  .target(
+    name: "your project name",
+    dependencies: ["unkoip"]),
+]
+```
+
 # usage
 
 ```swift
