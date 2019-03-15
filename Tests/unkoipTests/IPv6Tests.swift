@@ -10,6 +10,11 @@ import XCTest
 
 class IPv6Tests: XCTestCase {
 
+    func testInit() {
+        XCTAssert(IPv6(string: "::") != nil)
+        XCTAssert(IPv6(string: "::")!.isEqual(to: IPv6.zero))
+    }
+    
     func testConvert() {
         let ipv4 = IPv4(string: "135.75.43.52")!
         XCTAssert(ipv4.string() == "135.75.43.52", ipv4.string())

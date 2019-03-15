@@ -11,7 +11,8 @@ import XCTest
 class IPMaskTests: XCTestCase {
 
     func testInit() {
-        
+        let mask = IPMask(ipv4: 24)!
+        XCTAssert(mask.bytes == [255,255,255,0])
     }
 
     static var allTests = [
