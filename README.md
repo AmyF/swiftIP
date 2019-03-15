@@ -24,7 +24,7 @@ ip.isUnspecified //
 // IP Mask
 let mask = IPMask(ipv4: 24)! // [255,255,255,0]
 
-ip.defaultMask() // IPMask? class a/b/c mask
+ipv4.defaultMask() // IPMask class a/b/c mask
 
 ip.masking(with: mask) // IP?
 
