@@ -24,7 +24,20 @@ public struct IPNet {
     }
     
     init?(CIDR string: String) {
-        return nil
+        let cmpt = string.components(separatedBy: "/")
+        guard cmpt.count == 2 else {
+            return nil
+        }
+        let tmpIP: IP? = IPv4(string: cmpt[0]) ?? IPv6(string: cmpt[0])
+        guard let ip = tmpIP, let number = Int(cmpt[1]) else {
+            return nil
+        }
+        let tmpMask = ip.isIPv4 ? IPMask(ipv4: number) : IPMask(ipv6: number)
+        guard let mask = tmpMask else {
+            return nil
+        }
+        self.ip = ip
+        self.mask = mask
     }
 }
 
@@ -46,7 +59,6 @@ public protocol IP: IPFormattable {
     var isLinkLocalMulticast: Bool { get }
     var isLinkLocalUnicast: Bool { get }
     
-    func defaultMask() -> IPMask?
     func masking(with mask: IPMask) -> IP?
 }
 
@@ -103,13 +115,6 @@ public extension IP {
             (isIPv6 && bytes[0] == 0xFE && bytes[1] & 0xC0 == 0x80)
     }
     
-    public func defaultMask() -> IPMask? {
-        if let ip = toIPv4() {
-            return IPMask(from: ip)
-        }
-        return nil
-    }
-    
     public func masking(with mask: IPMask) -> IP? {
         if isIPv4 && mask.bytes.count == _v4BytesLength {
             return IPv4(bytes: zip(bytes, mask.bytes).map { $0 & $1 })
@@ -159,6 +164,10 @@ public struct IPv4: IP {
     
     public func toIPv6() -> IPv6? {
         return IPv6(bytes: _v4InV6Prefix + bytes)
+    }
+    
+    public func defaultMask() -> IPMask {
+        return IPMask(from: self)
     }
     
     public func string(formatter: IPFormatter = Formatter.dotDecimal) -> String {
@@ -306,8 +315,8 @@ public extension IPv6 {
 
 public struct IPMask {
     public static let classAMask = IPMask(from: [0xFF, 0, 0, 0])!
-    public static let classBMask = IPMask(from: [0xFF, 0, 0, 0])!
-    public static let classCMask = IPMask(from: [0xFF, 0, 0, 0])!
+    public static let classBMask = IPMask(from: [0xFF, 0xFF, 0, 0])!
+    public static let classCMask = IPMask(from: [0xFF, 0xFF, 0xFF, 0])!
     
     public let bytes: [UInt8]
     
@@ -317,9 +326,9 @@ public struct IPMask {
     
     public init(from ip: IPv4) {
         switch ip.bytes[0] {
-        case ...0x80:
+        case ..<0x80:
             self = .classAMask
-        case ...0xC0:
+        case ..<0xC0:
             self = .classBMask
         default:
             self = .classCMask
@@ -331,17 +340,17 @@ public struct IPMask {
     }
     
     public init?(ipv4 number: Int) {
-        guard number > 0 && number <= _v4BytesLength else {
+        guard number > 0 && number <= _v4BytesLength * 8 else {
             return nil
         }
-        self.init(number: number, length: _v4BytesLength)
+        self.init(number: number, length: _v4BytesLength * 8)
     }
     
     public init?(ipv6 number: Int) {
-        guard number > 0 && number <= _v6BytesLength else {
+        guard number > 0 && number <= _v6BytesLength * 8 else {
             return nil
         }
-        self.init(number: number, length: _v6BytesLength)
+        self.init(number: number, length: _v6BytesLength * 8)
     }
     
     private init(number: Int, length: Int) {
