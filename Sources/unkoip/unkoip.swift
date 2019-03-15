@@ -167,7 +167,7 @@ public struct IPv4: IP {
     }
     
     public func defaultMask() -> IPMask {
-        return IPMask(from: self)
+        return IPMask(ip: self)
     }
     
     public func string(formatter: IPFormatter = Formatter.dotDecimal) -> String {
@@ -314,9 +314,9 @@ public extension IPv6 {
 }
 
 public struct IPMask {
-    public static let classAMask = IPMask(from: [0xFF, 0, 0, 0])!
-    public static let classBMask = IPMask(from: [0xFF, 0xFF, 0, 0])!
-    public static let classCMask = IPMask(from: [0xFF, 0xFF, 0xFF, 0])!
+    public static let classAMask = IPMask(bytes: [0xFF, 0, 0, 0])!
+    public static let classBMask = IPMask(bytes: [0xFF, 0xFF, 0, 0])!
+    public static let classCMask = IPMask(bytes: [0xFF, 0xFF, 0xFF, 0])!
     
     public let bytes: [UInt8]
     
@@ -324,7 +324,7 @@ public struct IPMask {
     
     public let numberOfHost: Int
     
-    public init(from ip: IPv4) {
+    public init(ip: IPv4) {
         switch ip.bytes[0] {
         case ..<0x80:
             self = .classAMask
@@ -335,8 +335,8 @@ public struct IPMask {
         }
     }
     
-    public init?(from string: String) {
-        self.init(from: string.components(separatedBy: ".").compactMap { UInt8($0) })
+    public init?(string: String) {
+        self.init(bytes: string.components(separatedBy: ".").compactMap { UInt8($0) })
     }
     
     public init?(ipv4 number: Int) {
@@ -359,7 +359,7 @@ public struct IPMask {
         self.numberOfHost = length - number
     }
     
-    public init?(from bytes: [UInt8]) {
+    public init?(bytes: [UInt8]) {
         let length = bytes.count
         guard length == _v4BytesLength || length == _v6BytesLength else {
             return nil
